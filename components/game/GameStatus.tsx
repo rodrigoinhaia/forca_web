@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { GameStatus as GameStatusType } from "@/lib/types/game";
+import { useState, useEffect } from "react";
 
 interface GameStatusProps {
   status: GameStatusType;
@@ -14,6 +15,22 @@ export default function GameStatus({
   wrongGuesses,
   maxWrongGuesses,
 }: GameStatusProps) {
+  const [victoryMessage, setVictoryMessage] = useState("🎉 Vitória!");
+
+  useEffect(() => {
+    // Buscar mensagem de vitória personalizada
+    fetch("/api/settings/victory-message")
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.success && result.data?.message) {
+          setVictoryMessage(result.data.message);
+        }
+      })
+      .catch((err) => {
+        console.error("Erro ao buscar mensagem de vitória:", err);
+      });
+  }, []);
+
   const getStatusColor = () => {
     switch (status) {
       case "won":
@@ -28,7 +45,7 @@ export default function GameStatus({
   const getStatusText = () => {
     switch (status) {
       case "won":
-        return "🎉 Vitória!";
+        return victoryMessage;
       case "lost":
         return "😢 Derrota!";
       default:

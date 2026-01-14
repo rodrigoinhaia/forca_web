@@ -27,6 +27,9 @@ export default function AdminPage() {
     category: "",
     difficulty: "medio" as "facil" | "medio" | "dificil",
   });
+  const [showSettings, setShowSettings] = useState(false);
+  const [victoryMessage, setVictoryMessage] = useState("🎉 Você Ganhou!");
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -34,7 +37,53 @@ export default function AdminPage() {
       return;
     }
     fetchWords();
+    fetchSettings();
   }, [isAdmin, router]);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch("/api/settings");
+      const result = await response.json();
+      if (result.success) {
+        const victorySetting = result.data.find((s: any) => s.key === "victory_message");
+        if (victorySetting) {
+          setVictoryMessage(victorySetting.value);
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao buscar configurações:", err);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      setSavingSettings(true);
+      setError(null);
+      const response = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          key: "victory_message",
+          value: victoryMessage,
+          description: "Mensagem exibida quando o usuário acerta a palavra",
+        }),
+      });
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || "Erro ao salvar configurações");
+      }
+
+      setShowSettings(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro desconhecido");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   const fetchWords = async () => {
     try {
@@ -141,26 +190,74 @@ export default function AdminPage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-black/80 border border-red-600 rounded-xl shadow-lg p-8"
         >
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
             <h1 className="text-3xl font-bold text-white">📝 Gerenciar Palavras</h1>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                setShowForm(!showForm);
-                setEditingWord(null);
-                setFormData({ word: "", category: "", difficulty: "medio" });
-              }}
-              className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors border border-red-500"
-            >
-              {showForm ? "Cancelar" : "+ Nova Palavra"}
-            </motion.button>
+            <div className="flex gap-2">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setShowSettings(!showSettings);
+                  setShowForm(false);
+                }}
+                className="px-4 py-2 bg-black text-red-500 rounded-lg font-medium hover:bg-gray-900 transition-colors border border-red-600 text-sm"
+              >
+                ⚙️ Configurações
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setShowForm(!showForm);
+                  setEditingWord(null);
+                  setFormData({ word: "", category: "", difficulty: "medio" });
+                  setShowSettings(false);
+                }}
+                className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors border border-red-500"
+              >
+                {showForm ? "Cancelar" : "+ Nova Palavra"}
+              </motion.button>
+            </div>
           </div>
 
           {error && (
             <div className="bg-red-900/50 border border-red-600 text-red-400 px-4 py-3 rounded mb-4">
               {error}
             </div>
+          )}
+
+          {showSettings && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-6 bg-black/50 border border-red-600 rounded-lg space-y-4"
+            >
+              <h2 className="text-xl font-bold text-white mb-4">⚙️ Configurações do Jogo</h2>
+              
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">
+                  Mensagem de Vitória
+                </label>
+                <input
+                  type="text"
+                  value={victoryMessage}
+                  onChange={(e) => setVictoryMessage(e.target.value)}
+                  className="w-full px-4 py-2 bg-black border border-red-600 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  placeholder="Ex: 🎉 Você Ganhou!"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Esta mensagem será exibida quando o usuário acertar a palavra
+                </p>
+              </div>
+
+              <button
+                onClick={handleSaveSettings}
+                disabled={savingSettings}
+                className="w-full px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors border border-red-500 disabled:opacity-50"
+              >
+                {savingSettings ? "Salvando..." : "Salvar Configurações"}
+              </button>
+            </motion.div>
           )}
 
           {showForm && (

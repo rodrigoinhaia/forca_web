@@ -21,6 +21,7 @@ export default function Home() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [victoryMessage, setVictoryMessage] = useState("🎉 Você Ganhou!");
 
   const startGame = async (difficulty?: "facil" | "medio" | "dificil") => {
     setLoading(true);
@@ -101,6 +102,18 @@ export default function Home() {
   };
 
   useEffect(() => {
+    // Buscar mensagem de vitória personalizada
+    fetch("/api/settings/victory-message")
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.success && result.data?.message) {
+          setVictoryMessage(result.data.message);
+        }
+      })
+      .catch((err) => {
+        console.error("Erro ao buscar mensagem de vitória:", err);
+      });
+
     // Iniciar jogo automaticamente ao carregar
     startGame();
   }, []);
@@ -120,7 +133,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-red-900/50 border border-red-600 text-red-400 px-4 py-3 rounded mb-4"
+            className="bg-red-900/50 border border-red-600 text-red-400 px-3 sm:px-4 py-2 sm:py-3 rounded mb-3 sm:mb-4 text-sm sm:text-base"
           >
             {error}
           </motion.div>
@@ -135,7 +148,7 @@ export default function Home() {
               exit={{ opacity: 0 }}
               className="text-center"
             >
-              <p className="text-xl">Carregando jogo...</p>
+              <p className="text-lg sm:text-xl text-white">Carregando jogo...</p>
             </motion.div>
           ) : (
             <motion.div
@@ -172,21 +185,21 @@ export default function Home() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-center space-y-4"
+                  className="text-center space-y-3 sm:space-y-4"
                 >
-                  <p className="text-2xl font-semibold">
-                    {gameState.status === "won" ? "🎉 Você Ganhou!" : "😢 Você Perdeu!"}
+                  <p className="text-xl sm:text-2xl font-semibold text-white">
+                    {gameState.status === "won" ? victoryMessage : "😢 Você Perdeu!"}
                   </p>
                   {gameState.status === "lost" && (
-                    <p className="text-lg text-gray-600">
-                      A palavra era: <span className="font-bold">{gameState.word}</span>
+                    <p className="text-sm sm:text-base md:text-lg text-gray-400">
+                      A palavra era: <span className="font-bold text-red-400">{gameState.word}</span>
                     </p>
                   )}
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => startGame()}
-                    className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors border border-red-500"
+                    className="px-4 sm:px-6 py-2 sm:py-3 bg-red-600 text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-red-700 transition-colors border border-red-500"
                   >
                     Jogar Novamente
                   </motion.button>
@@ -199,7 +212,7 @@ export default function Home() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => startGame()}
-                    className="px-4 py-2 bg-black text-red-500 rounded-lg font-medium hover:bg-gray-900 transition-colors border border-red-600"
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-black text-red-500 rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-900 transition-colors border border-red-600"
                   >
                     Novo Jogo
                   </motion.button>

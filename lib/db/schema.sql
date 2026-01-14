@@ -35,6 +35,20 @@ CREATE TABLE IF NOT EXISTS game_sessions (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Tabela de configurações do jogo
+CREATE TABLE IF NOT EXISTS game_settings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  key VARCHAR(100) UNIQUE NOT NULL,
+  value TEXT NOT NULL,
+  description TEXT,
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Inserir mensagem padrão de vitória
+INSERT INTO game_settings (key, value, description) VALUES
+  ('victory_message', '🎉 Você Ganhou!', 'Mensagem exibida quando o usuário acerta a palavra')
+ON CONFLICT (key) DO NOTHING;
+
 -- Índices para performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);

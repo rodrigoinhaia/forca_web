@@ -12,6 +12,7 @@
     "test": "vitest",
     "test:e2e": "playwright test",
     "db:init": "tsx scripts/init-db.ts",
+    "db:migrate-settings": "tsx scripts/migrate-settings.ts",
     "db:create-admin": "tsx scripts/create-admin.ts",
     "db:create-default-admin": "tsx scripts/create-default-admin.ts",
     "db:setup": "tsx scripts/setup-db.ts"
