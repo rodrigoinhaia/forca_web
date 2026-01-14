@@ -56,6 +56,19 @@ export async function PATCH(
     });
   } catch (error) {
     console.error("Error updating word:", error);
+    
+    // Erro de autenticação/autorização
+    if (error instanceof Error && (
+      error.message.includes("Token") || 
+      error.message.includes("Acesso negado") ||
+      error.message.includes("autenticação")
+    )) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 401 }
+      );
+    }
+    
     if (error instanceof Error && error.message.includes("não encontrada")) {
       return NextResponse.json(
         { success: false, error: error.message },
@@ -97,6 +110,19 @@ export async function DELETE(
     });
   } catch (error) {
     console.error("Error deleting word:", error);
+    
+    // Erro de autenticação/autorização
+    if (error instanceof Error && (
+      error.message.includes("Token") || 
+      error.message.includes("Acesso negado") ||
+      error.message.includes("autenticação")
+    )) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 401 }
+      );
+    }
+    
     if (error instanceof Error && error.message.includes("não encontrada")) {
       return NextResponse.json(
         { success: false, error: error.message },

@@ -55,6 +55,19 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error("Error creating word:", error);
+    
+    // Erro de autenticação/autorização
+    if (error instanceof Error && (
+      error.message.includes("Token") || 
+      error.message.includes("Acesso negado") ||
+      error.message.includes("autenticação")
+    )) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 401 }
+      );
+    }
+    
     if (error instanceof Error && error.message.includes("já cadastrada")) {
       return NextResponse.json(
         { success: false, error: error.message },
