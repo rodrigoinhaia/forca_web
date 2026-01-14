@@ -95,7 +95,7 @@ export class UserRepository extends BaseRepository<User> {
       ORDER BY total_score DESC, games_won DESC, win_rate DESC
       LIMIT ${limit}
     `;
-    return result.rows.map((row, index) => ({
+    return result.rows.map((row: any, index: number) => ({
       ...row,
       position: index + 1,
       win_rate: parseFloat(row.win_rate) || 0,
