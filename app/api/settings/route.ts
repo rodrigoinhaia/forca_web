@@ -27,16 +27,8 @@ export async function GET(request: NextRequest) {
 // PATCH - Atualizar configuração (apenas admin)
 export async function PATCH(request: NextRequest) {
   try {
-    const authResult = await requireAdmin(request);
-    if (!authResult.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: authResult.error,
-        },
-        { status: 401 }
-      );
-    }
+    // Verificar autenticação e permissões de admin
+    await requireAdmin(request);
 
     const body = await request.json();
     const { key, value, description } = body;
@@ -59,10 +51,26 @@ export async function PATCH(request: NextRequest) {
     });
   } catch (error) {
     console.error("Erro ao atualizar configuração:", error);
+    
+    // Se for erro de autenticação/autorização
+    if (error instanceof Error && (
+      error.message.includes("Token") || 
+      error.message.includes("Acesso negado") ||
+      error.message.includes("autenticação")
+    )) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.message,
+        },
+        { status: 401 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: "Erro ao atualizar configuração",
+        error: error instanceof Error ? error.message : "Erro ao atualizar configuração",
       },
       { status: 500 }
     );
